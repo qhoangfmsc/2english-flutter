@@ -2,9 +2,39 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../onboarding/screens/onboarding_screen.dart';
+import '../../test/screens/test_hub_screen.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  int _tapCount = 0;
+  DateTime? _lastTapAt;
+
+  void _handleSecretTap() {
+    final now = DateTime.now();
+    // Reset series if last tap > 2s ago
+    if (_lastTapAt == null || now.difference(_lastTapAt!).inMilliseconds > 2000) {
+      _tapCount = 0;
+    }
+    _lastTapAt = now;
+    _tapCount += 1;
+
+    if (_tapCount >= 13) {
+      _tapCount = 0;
+      _lastTapAt = null;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const TestHubScreen(),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,17 +58,20 @@ class SplashScreen extends StatelessWidget {
               children: [
                 const Spacer(),
                 // Logo or Icon
-                Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.school,
-                    size: 60,
-                    color: Colors.white,
+                GestureDetector(
+                  onTap: _handleSecretTap,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.school,
+                      size: 60,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -123,7 +156,7 @@ class SplashScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 8),
               ],
             ),
           ),
