@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:clerk_flutter/clerk_flutter.dart';
-import '../theme/app_colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Reusable navigation bar with logo, user info, and dropdown menu
 class AppHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -11,41 +10,24 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.white,
+      toolbarHeight: 64, // make header a bit taller
+      leadingWidth: 100, // give the logo more horizontal space
       shape: Border(
         bottom: BorderSide(color: Colors.grey.shade300, width: 0.5),
       ),
-      elevation: 0,
       leading: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Image(
-          image: AssetImage('assets/logo/zobite-avatar.png'),
-          width: 20,
-          height: 20,
+        padding: const EdgeInsets.only(left: 12.0),
+        child: SvgPicture.asset(
+          'assets/logo/zobite-icon-with-text-green.svg',
+          fit: BoxFit.contain,
         ),
       ),
-      title: const Spacer(),
       actions: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: ClerkAuthBuilder(
-            signedInBuilder: (context, authState) {
-              final user = authState.user;
-              final fullName =
-                  '${user?.firstName ?? ''} ${user?.lastName ?? ''}'.trim();
-              return Center(
-                child: Text(
-                  fullName.isEmpty ? 'Xin chào' : 'Xin chào, $fullName',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              );
-            },
-            signedOutBuilder: (context, authState) {
-              return const SizedBox.shrink();
-            },
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_outlined, size: 22),
           ),
         ),
       ],
