@@ -16,7 +16,7 @@ class AppTheme {
       
       // ColorScheme - màu sắc chính của app
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryColor,
+        seedColor: Colors.white,
         brightness: Brightness.light,
       ),
 
