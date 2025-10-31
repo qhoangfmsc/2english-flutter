@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:clerk_flutter/clerk_flutter.dart';
 import '../../../core/widgets/main_layout.dart';
 import '../../vocab/screens/vocab_screen.dart';
 import '../../account/screens/account_screen.dart';
-import '../../auth/screens/login_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -34,27 +32,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ClerkAuthBuilder(
-      signedInBuilder: (context, authState) {
-        return MainLayout(
-          currentBottomNavIndex: _currentIndex,
-          onBottomNavTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          body: _currentBody(),
-        );
-      },
-      signedOutBuilder: (context, authState) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
-          );
+    return MainLayout(
+      currentBottomNavIndex: _currentIndex,
+      onBottomNavTap: (index) {
+        setState(() {
+          _currentIndex = index;
         });
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
+      body: _currentBody(),
     );
   }
 }

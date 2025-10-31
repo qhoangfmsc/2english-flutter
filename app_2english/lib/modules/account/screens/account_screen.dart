@@ -1,9 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:app_2english/core/theme/app_colors.dart';
 import 'package:clerk_flutter/clerk_flutter.dart';
 import 'package:app_2english/modules/auth/screens/login_screen.dart';
 
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
+
+  Future<void> _showOAuthSheet(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return ClerkAuthBuilder(
+          signedInBuilder: (ctx, authState) {
+            // Close the sheet once signed in
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (Navigator.of(sheetContext).canPop()) {
+                Navigator.of(sheetContext).pop();
+              }
+            });
+            return const SizedBox.shrink();
+          },
+          signedOutBuilder: (ctx, authState) {
+            return Container(
+              height: MediaQuery.of(ctx).size.height * 0.35,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: const ClerkAuthentication(),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +69,6 @@ class AccountScreen extends StatelessWidget {
                         final lastName = authState.user?.lastName ?? '';
                         final fullName = '$firstName $lastName';
                         final email = authState.user?.email ?? '';
-
-                        debugPrint(imageUrl);
 
                         return Row(
                           spacing: 12,
@@ -81,7 +112,39 @@ class AccountScreen extends StatelessWidget {
                         );
                       },
                       signedOutBuilder: (context, authState) {
-                        return Text('Signed out');
+                        return Row(
+                          spacing: 12,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(9999),
+                              child: Image(
+                                image: AssetImage('assets/images/user.png'),
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Người dùng',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  'Đăng nhập để lưu dữ liệu học tập',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
                       },
                     ),
                   ],
@@ -102,28 +165,16 @@ class AccountScreen extends StatelessWidget {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      spacing: 12,
-                      children: [
-                        Row(
+                  child: ClerkAuthBuilder(
+                    signedInBuilder: (context, authState) {
+                      return Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          spacing: 12,
                           children: [
-                            Text(
-                              'Preferences',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            ClerkAuthBuilder(
-                              signedInBuilder: (context, authState) {
-                                return InkWell(
+                            Column(
+                              children: [
+                                InkWell(
                                   onTap: () async {
                                     try {
                                       await authState.signOut();
@@ -131,8 +182,12 @@ class AccountScreen extends StatelessWidget {
                                       debugPrint('Sign out error: $e');
                                     } finally {
                                       if (context.mounted) {
-                                        Navigator.of(context).pushAndRemoveUntil(
-                                          MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                        Navigator.of(
+                                          context,
+                                        ).pushAndRemoveUntil(
+                                          MaterialPageRoute(
+                                            builder: (_) => const LoginScreen(),
+                                          ),
                                           (route) => false,
                                         );
                                       }
@@ -142,19 +197,53 @@ class AccountScreen extends StatelessWidget {
                                     spacing: 12,
                                     children: [
                                       Icon(Icons.logout, color: Colors.red),
-                                      Text('Logout', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+                                      Text(
+                                        'Logout',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                        ),
+                                      ),
                                     ],
                                   ),
-                                );
-                              },
-                              signedOutBuilder: (context, _) {
-                                return const SizedBox.shrink();
-                              },
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
+                    signedOutBuilder: (context, _) {
+                      return SizedBox(
+                        width: double.infinity,
+                        child: CupertinoButton(
+                          color: AppColors.primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          onPressed: () async {
+                            await _showOAuthSheet(context);
+                            // After closing, the surrounding ClerkAuthBuilder will rebuild
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Đăng nhập ngay',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

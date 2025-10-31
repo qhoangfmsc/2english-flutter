@@ -4,14 +4,12 @@ class OnboardingConstants {
 
   /// Danh sách các ngôn ngữ có thể chọn
   static const List<LanguageOption> languages = [
-    LanguageOption(emoji: '🇪🇸', label: 'Tiếng Tây Ban Nha', value: 'Tiếng Tây Ban Nha'),
-    LanguageOption(emoji: '🇫🇷', label: 'Tiếng Pháp', value: 'Tiếng Pháp'),
-    LanguageOption(emoji: '🇯🇵', label: 'Tiếng Nhật', value: 'Tiếng Nhật'),
-    LanguageOption(emoji: '🇬🇧', label: 'Tiếng Anh', value: 'Tiếng Anh'),
-    LanguageOption(emoji: '🇰🇷', label: 'Tiếng Hàn', value: 'Tiếng Hàn'),
-    LanguageOption(emoji: '🇹🇼', label: 'Tiếng Trung (Phồn thể)', value: 'Tiếng Trung (Phồn thể)'),
-    LanguageOption(emoji: '🇨🇳', label: 'Tiếng Trung (Giản thể)', value: 'Tiếng Trung (Giản thể)'),
     LanguageOption(emoji: '🇻🇳', label: 'Tiếng Việt', value: 'Tiếng Việt'),
+    LanguageOption(emoji: '🇬🇧', label: 'Tiếng Anh', value: 'Tiếng Anh'),
+    LanguageOption(emoji: '🇯🇵', label: 'Tiếng Nhật', value: 'Tiếng Nhật'),
+    LanguageOption(emoji: '🇫🇷', label: 'Tiếng Pháp', value: 'Tiếng Pháp'),
+    LanguageOption(emoji: '🇰🇷', label: 'Tiếng Hàn', value: 'Tiếng Hàn'),
+    LanguageOption(emoji: '🇨🇳', label: 'Tiếng Trung', value: 'Tiếng Trung'),
   ];
 
   /// Danh sách các chủ đề quan tâm

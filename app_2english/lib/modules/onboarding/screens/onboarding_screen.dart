@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../common/onboarding_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
@@ -20,6 +21,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const int _totalSteps = 6;
   double get _progress => (_currentStepIndex + 1) / _totalSteps;
+  
 
   void _goNext() {
     if (_currentStepIndex < _totalSteps - 1) {
@@ -79,7 +81,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     elevation: 0,
                   ),
-                  onPressed: _canProceed() ? _goNext : null,
+                onPressed: _canProceed() ? _handlePrimaryAction : null,
                   child: Text(
                     _currentStepIndex == 4
                         ? 'Hoàn thành'
@@ -103,6 +105,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (_currentStepIndex == 3) return _selectedLevelId != null;
     // Steps 5 and 6 are informational; allow proceeding
     return true;
+  }
+
+  Future<void> _handlePrimaryAction() async {
+    if (_currentStepIndex == 4) {
+      await _showDebugSelectionsDialog();
+      _goNext();
+      return;
+    }
+    _goNext();
+  }
+
+  Future<void> _showDebugSelectionsDialog() async {
+    final String language = _selectedLanguage ?? 'Chưa chọn';
+    final String topics = _selectedTopics.isNotEmpty
+        ? _selectedTopics.join(', ')
+        : 'Chưa chọn';
+    final String reasons = _selectedReasons.isNotEmpty
+        ? _selectedReasons.join(', ')
+        : 'Chưa chọn';
+    String level = 'Chưa chọn';
+    if (_selectedLevelId != null) {
+      final matches = OnboardingConstants.languageLevels
+          .where((lv) => lv.id == _selectedLevelId)
+          .toList();
+      if (matches.isNotEmpty) {
+        level = matches.first.title;
+      } else {
+        level = _selectedLevelId!;
+      }
+    }
+
+    final String content =
+        'Ngôn ngữ: $language\nChủ đề: $topics\nLý do: $reasons\nTrình độ: $level';
+
+    debugPrint('[Onboarding] selections ->\n$content');
   }
 
   Widget _buildStepContent() {
@@ -248,7 +285,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-class _LanguageHeader extends StatelessWidget {
+class _LanguageHeader extends StatefulWidget {
   final double progress;
   final VoidCallback onBack;
   final String title;
@@ -262,6 +299,21 @@ class _LanguageHeader extends StatelessWidget {
     required this.question,
     required this.stepText,
   });
+
+  @override
+  State<_LanguageHeader> createState() => _LanguageHeaderState();
+}
+
+class _LanguageHeaderState extends State<_LanguageHeader> {
+  double _previousProgress = 0;
+
+  @override
+  void didUpdateWidget(covariant _LanguageHeader oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.progress != widget.progress) {
+      _previousProgress = oldWidget.progress;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -285,7 +337,7 @@ class _LanguageHeader extends StatelessWidget {
           Row(
             children: [
               InkWell(
-                onTap: onBack,
+                onTap: widget.onBack,
                 borderRadius: BorderRadius.circular(24),
                 child: Container(
                   width: 36,
@@ -311,7 +363,7 @@ class _LanguageHeader extends StatelessWidget {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              title,
+              widget.title,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -330,7 +382,7 @@ class _LanguageHeader extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    stepText,
+                    widget.stepText,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 9,
@@ -343,11 +395,19 @@ class _LanguageHeader extends StatelessWidget {
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                    backgroundColor: Colors.white,
-                    color: AppColors.primaryColor,
+                  child: TweenAnimationBuilder<double>(
+                    tween: Tween<double>(begin: _previousProgress, end: widget.progress),
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeInOut,
+                    onEnd: () {
+                      _previousProgress = widget.progress;
+                    },
+                    builder: (context, value, _) => LinearProgressIndicator(
+                      value: value,
+                      minHeight: 8,
+                      backgroundColor: Colors.white,
+                      color: AppColors.primaryColor,
+                    ),
                   ),
                 ),
               ),
@@ -356,7 +416,7 @@ class _LanguageHeader extends StatelessWidget {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              question,
+              widget.question,
               textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
@@ -523,8 +583,25 @@ class _TopicCard extends StatelessWidget {
   }
 }
 
-class _NotificationCTA extends StatelessWidget {
+class _NotificationCTA extends StatefulWidget {
   const _NotificationCTA({super.key});
+
+  @override
+  State<_NotificationCTA> createState() => _NotificationCTAState();
+}
+
+class _NotificationCTAState extends State<_NotificationCTA> {
+  @override
+  void initState() {
+    super.initState();
+    // Request notification permission each time this step is shown
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final status = await Permission.notification.status;
+      if (!status.isGranted) {
+        await Permission.notification.request();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
