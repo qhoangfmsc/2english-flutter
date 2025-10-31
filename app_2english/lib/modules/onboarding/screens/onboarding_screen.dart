@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../dashboard/screens/dashboard_screen.dart';
 import '../common/onboarding_constants.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../dashboard/screens/dashboard_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,7 +18,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final Set<String> _selectedReasons = {};
   String? _selectedLevelId;
 
-  static const int _totalSteps = 6; // 1:language,2:topics,3:reasons,4:level,5:noti,6:thanks
+  static const int _totalSteps = 6;
   double get _progress => (_currentStepIndex + 1) / _totalSteps;
 
   void _goNext() {

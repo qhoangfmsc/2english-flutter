@@ -1,0 +1,17 @@
+---
+alwaysApply: true
+---
+
+# Coding style
+
+## Source Structure
+
+- Làm các layout ở trong widgets
+- Các features sẽ để tạo mỗi modules tương ứng để xử lý
+    + Mỗi Feature/Module sẽ có screen, utils,... xử lý tương ứng các logic code
+
+- Hình ảnh và font, logo để trong /assets/* để xử dụng tương ứng
+
+## UI
+
+- Sử dụng Cupertino cho hầu hết các UI để nhìn giống Apple App
