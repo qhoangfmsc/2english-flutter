@@ -29,7 +29,7 @@ class AppBottomNav extends StatelessWidget {
               _buildNavItem(
                 icon: Icons.book_outlined,
                 activeIcon: Icons.book,
-                label: 'Your Vocab',
+                label: 'My Vocab',
                 index: 1,
                 context: context,
               ),
