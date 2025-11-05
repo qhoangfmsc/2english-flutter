@@ -200,7 +200,7 @@ class AccountScreen extends StatelessWidget {
                                     children: [
                                       Icon(Icons.logout, color: Colors.red),
                                       Text(
-                                        'Logout',
+                                        'Đăng xuất',
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
