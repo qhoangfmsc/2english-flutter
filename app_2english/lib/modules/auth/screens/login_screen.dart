@@ -113,10 +113,11 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ClerkAuthBuilder(
               signedInBuilder: (context, authState) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  Navigator.of(context).pushReplacement(
+                  Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
                       builder: (context) => const DashboardScreen(),
                     ),
+                    (route) => false,
                   );
                 });
 
