@@ -2,16 +2,65 @@
 alwaysApply: true
 ---
 
-# Coding style
+## Coding style
+
+- Code và tổ chức 1 file theo hướng chuyên nghiệp, tập trung vào các yếu tố sau: DỄ ĐỌC LẠI, DỄ BẢO TRÌ
+- Các biến, function, widget phải viết rõ ràng đủ ý nghĩa
+- Trong 1 file tổ chức bố cục và sắp xếp toàn diện như sau:
+    + Các biến sẽ được khai báo trên đầu
+    + Các function xử lý logic
+    + Các widgets phát sinh
+    *Lưu ý: Đặt comment vào MỖI PHẦN liên quan, chẳng hạn các biến liên quan đến step, logic, sẽ chỉ comment 1 lần và đặt tên như 1 title để nhận biết, không ghi quá nhiều comment
+- Ưu tiên viết các widget và function liên quan ngay trong file, chỉ tách ra nếu mang tính lặp lại hoặc component mang ý nghĩa chung, ví dụ "step_title.dart", "topic_card",...
+
+## Quy tắc đặt tên
+
+- File / Folder	-> snake_case -> user_repository.dart, home_screen.dart
+- Class / Enum -> PascalCase -> UserModel, AuthService
+- Biến / Hàm -> camelCase -> fetchData(), userName, onPressed()
+- Private biến / hàm -> _camelCase -> _selectedLanguage, _fetchData()
+- Constant -> SCREAMING_SNAKE_CASE -> MAX_ATTEMPTS, BASE_URL
 
 ## Source Structure
 
 - Làm các layout ở trong widgets
 - Các features sẽ để tạo mỗi modules tương ứng để xử lý
-    + Mỗi Feature/Module sẽ có screen, utils,... xử lý tương ứng các logic code
+lib/
+│
+├── main.dart                     # Entry point
+│
+├── app/                          # Global setup, theming, routes, DI
+│   ├── app.dart                  # Root widget
+│   ├── router.dart               # GoRouter / Route setup
+│   ├── theme.dart                # App theme (colors, text styles)
+│   └── constants.dart            # App constants (colors, spacing)
+│
+├── core/                         # Core logic, shared across features
+│   ├── utils/                    # Formatters, validators, helpers
+│   ├── services/                 # API, storage, analytics, etc.
+│   ├── widgets/                  # Reusable shared widgets
+│   └── models/                   # Global models (User, Token,...)
+│
+├── features/                     # Tách theo “domain” hoặc “feature”
+│   ├── onboarding/
+│   │   ├── data/                 # Repository, data sources
+│   │   ├── domain/               # Entities, use-cases (if clean arch)
+│   │   ├── presentation/         # Screens, widgets, state
+│   │   └── onboarding_screen.dart
+│   │
+│   ├── learning/
+│   │   ├── data/
+│   │   ├── domain/
+│   │   ├── presentation/
+│   │   └── learning_screen.dart
+│   │
+│   └── settings/
+│       ├── data/
+│       ├── domain/
+│       ├── presentation/
+│       └── settings_screen.dart
+│
+└── l10n/                         # Localization
+
 
 - Hình ảnh và font, logo để trong /assets/* để xử dụng tương ứng
-
-## UI
-
-- Sử dụng Cupertino cho hầu hết các UI để nhìn giống Apple App

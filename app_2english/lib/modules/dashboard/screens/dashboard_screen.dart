@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/widgets/main_layout.dart';
-import '../../vocab/screens/vocab_screen.dart';
-import '../../account/screens/account_screen.dart';
+import 'package:app_2english/core/widgets/main_layout.dart';
+import 'package:app_2english/modules/vocab/screens/vocab_screen.dart';
+import 'package:app_2english/modules/account/screens/account_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

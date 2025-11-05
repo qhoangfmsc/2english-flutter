@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:clerk_flutter/clerk_flutter.dart';
-import 'core/theme/app_theme.dart';
-import 'modules/auth/screens/login_screen.dart';
+import 'package:app_2english/core/theme/app_theme.dart';
+import 'package:app_2english/modules/auth/screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());

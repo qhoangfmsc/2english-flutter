@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'clerk_test_screen.dart';
+import 'package:app_2english/modules/test/screens/clerk_test_screen.dart';
 
 class TestHubScreen extends StatelessWidget {
   const TestHubScreen({super.key});
 
+  // ========== Build Methods ==========
   @override
   Widget build(BuildContext context) {
     final List<_TestItem> tests = [
@@ -41,15 +42,14 @@ class TestHubScreen extends StatelessWidget {
 }
 
 class _TestItem {
-  final String title;
-  final String description;
-  final WidgetBuilder builder;
-
   const _TestItem({
     required this.title,
     required this.description,
     required this.builder,
   });
+  final String title;
+  final String description;
+  final WidgetBuilder builder;
 }
 
 

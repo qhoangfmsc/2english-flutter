@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import 'package:app_2english/core/theme/app_colors.dart';
 
 /// Reusable bottom navigation bar
 class AppBottomNav extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
 
   const AppBottomNav({
     super.key,
     required this.currentIndex,
     required this.onTap,
   });
+  final int currentIndex;
+  final Function(int) onTap;
 
   @override
   Widget build(BuildContext context) {

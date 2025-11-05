@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../common/onboarding_constants.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../dashboard/screens/dashboard_screen.dart';
+import 'package:app_2english/modules/onboarding/common/onboarding_constants.dart';
+import 'package:app_2english/modules/onboarding/utils/onboarding_strings.dart';
+import 'package:app_2english/modules/onboarding/widgets/option_tile.dart';
+import 'package:app_2english/core/theme/app_colors.dart';
+import 'package:app_2english/modules/dashboard/screens/dashboard_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -12,7 +14,7 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-
+  // ========== State Variables ==========
   int _currentStepIndex = 0;
   String? _selectedLanguage;
   final Set<String> _selectedTopics = {};
@@ -20,20 +22,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   String? _selectedLevelId;
 
   static const int _totalSteps = 6;
-  double get _progress => (_currentStepIndex + 1) / _totalSteps;
   
+  double get _progress => (_currentStepIndex + 1) / _totalSteps;
 
+  // ========== Navigation Logic ==========
   void _goNext() {
     if (_currentStepIndex < _totalSteps - 1) {
       setState(() {
         _currentStepIndex += 1;
       });
     } else {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const DashboardScreen()),
-        (route) => false,
-      );
+      _navigateToDashboard();
     }
   }
 
@@ -47,252 +46,319 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // Unified layout for all steps (no app bar)
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            _LanguageHeader(
-              progress: _progress,
-              onBack: _goBack,
-              title: _headerTitleForStep(),
-              question: _headerSubtitleForStep(),
-              stepText: '${_currentStepIndex + 1}/$_totalSteps',
-            ),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: _buildStepContent(),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    elevation: 0,
-                  ),
-                onPressed: _canProceed() ? _handlePrimaryAction : null,
-                  child: Text(
-                    _currentStepIndex == 4
-                        ? 'Hoàn thành'
-                        : _currentStepIndex == 5
-                            ? 'Học ngay'
-                            : 'Tiếp tục',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+  void _navigateToDashboard() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const DashboardScreen()),
+      (route) => false,
     );
   }
 
+  // ========== Validation & Actions ==========
   bool _canProceed() {
-    if (_currentStepIndex == 0) return _selectedLanguage != null;
-    if (_currentStepIndex == 1) return _selectedTopics.isNotEmpty;
-    if (_currentStepIndex == 2) return _selectedReasons.isNotEmpty;
-    if (_currentStepIndex == 3) return _selectedLevelId != null;
-    // Steps 5 and 6 are informational; allow proceeding
-    return true;
+    switch (_currentStepIndex) {
+      case 0:
+        return _selectedLanguage != null;
+      case 1:
+        return _selectedTopics.isNotEmpty;
+      case 2:
+        return _selectedReasons.isNotEmpty;
+      case 3:
+        return _selectedLevelId != null;
+      case 4:
+      case 5:
+        return true;
+      default:
+        return false;
+    }
   }
 
   Future<void> _handlePrimaryAction() async {
     if (_currentStepIndex == 4) {
       await _showDebugSelectionsDialog();
-      _goNext();
-      return;
     }
     _goNext();
   }
 
-  Future<void> _showDebugSelectionsDialog() async {
-    final String language = _selectedLanguage ?? 'Chưa chọn';
-    final String topics = _selectedTopics.isNotEmpty
-        ? _selectedTopics.join(', ')
-        : 'Chưa chọn';
-    final String reasons = _selectedReasons.isNotEmpty
-        ? _selectedReasons.join(', ')
-        : 'Chưa chọn';
-    String level = 'Chưa chọn';
-    if (_selectedLevelId != null) {
-      final matches = OnboardingConstants.languageLevels
-          .where((lv) => lv.id == _selectedLevelId)
-          .toList();
-      if (matches.isNotEmpty) {
-        level = matches.first.title;
+  // ========== Selection Toggle Logic ==========
+  void _toggleTopic(String topic) {
+    setState(() {
+      if (_selectedTopics.contains(topic)) {
+        _selectedTopics.remove(topic);
       } else {
-        level = _selectedLevelId!;
+        _selectedTopics.add(topic);
       }
-    }
-
-    final String content =
-        'Ngôn ngữ: $language\nChủ đề: $topics\nLý do: $reasons\nTrình độ: $level';
-
-    debugPrint('[Onboarding] selections ->\n$content');
+    });
   }
 
-  Widget _buildStepContent() {
+  void _toggleReason(String reason) {
+    setState(() {
+      if (_selectedReasons.contains(reason)) {
+        _selectedReasons.remove(reason);
+      } else {
+        _selectedReasons.add(reason);
+      }
+    });
+  }
+
+  // ========== Helper Methods ==========
+  String _getButtonLabel() {
     switch (_currentStepIndex) {
-      case 0:
-        return Padding(
-          key: const ValueKey('step-language'),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: ListView(
-            children: [
-              const SizedBox(height: 8),
-              ...OnboardingConstants.languages.map((lang) {
-                return _OptionTile(
-                  emoji: lang.emoji,
-                  label: lang.label,
-                  selected: _selectedLanguage == lang.value,
-                  onTap: () => setState(() => _selectedLanguage = lang.value),
-                );
-              }),
-              const SizedBox(height: 12),
-            ],
-          ),
-        );
-      case 1:
-        return Padding(
-          key: const ValueKey('step-topics'),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.25,
-            ),
-            itemCount: OnboardingConstants.topics.length,
-            itemBuilder: (context, index) {
-              final String t = OnboardingConstants.topics[index];
-              final bool selected = _selectedTopics.contains(t);
-              return _TopicCard(
-                icon: Icons.category,
-                label: t,
-                selected: selected,
-                onTap: () {
-                  setState(() {
-                    if (selected) {
-                      _selectedTopics.remove(t);
-                    } else {
-                      _selectedTopics.add(t);
-                    }
-                  });
-                },
-              );
-            },
-          ),
-        );
-      case 2:
-        return Padding(
-          key: const ValueKey('step-reasons'),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: ListView(
-            children: OnboardingConstants.reasons.map((r) {
-              final bool selected = _selectedReasons.contains(r);
-              return _OptionTile(
-                leadingIcon: Icons.auto_awesome,
-                label: r,
-                selected: selected,
-                multiSelect: true,
-                onTap: () {
-                  setState(() {
-                    if (selected) {
-                      _selectedReasons.remove(r);
-                    } else {
-                      _selectedReasons.add(r);
-                    }
-                  });
-                },
-              );
-            }).toList(),
-          ),
-        );
-      case 3:
-        return Padding(
-          key: const ValueKey('step-level'),
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: ListView(
-            children: OnboardingConstants.languageLevels.map((lv) {
-              final bool selected = _selectedLevelId == lv.id;
-              return _OptionTile(
-                leadingIcon: Icons.timer,
-                label: lv.title,
-                subtitle: lv.subtitle,
-                badgeText: lv.badge,
-                selected: selected,
-                onTap: () => setState(() => _selectedLevelId = lv.id),
-              );
-            }).toList(),
-          ),
-        );
       case 4:
-        return _NotificationCTA(key: const ValueKey('step-noti'));
+        return OnboardingStrings.buttonComplete;
       case 5:
+        return OnboardingStrings.buttonStart;
       default:
-        return _FinalThankYou(key: const ValueKey('step-final'), onStart: _goNext);
+        return OnboardingStrings.buttonContinue;
     }
   }
 
   String _headerTitleForStep() {
     switch (_currentStepIndex) {
       case 0:
-        return 'Chọn ngôn ngữ';
+        return OnboardingStrings.titleLanguage;
       case 1:
-        return 'Chọn chủ đề quan tâm';
+        return OnboardingStrings.titleTopics;
       case 2:
-        return 'Vì sao bạn học tiếng Anh?';
+        return OnboardingStrings.titleReasons;
       case 3:
-        return 'Trình độ tiếng Anh hiện tại';
+        return OnboardingStrings.titleLevel;
       case 4:
-        return 'Bật thông báo';
+        return OnboardingStrings.titleNotification;
       case 5:
-        return 'Hoàn tất';
+        return OnboardingStrings.titleComplete;
       default:
-        return 'Chọn ngôn ngữ';
+        return OnboardingStrings.titleLanguage;
     }
   }
 
   String _headerSubtitleForStep() {
     switch (_currentStepIndex) {
       case 0:
-        return 'Bạn muốn học ngôn ngữ nào?';
+        return OnboardingStrings.questionLanguage;
       case 1:
-        return 'Bạn có thể chọn nhiều mục';
+        return OnboardingStrings.questionTopics;
       case 2:
-        return 'Chọn các lý do phù hợp';
+        return OnboardingStrings.questionReasons;
       case 3:
-        return 'Hãy chọn mức độ phù hợp với bạn';
+        return OnboardingStrings.questionLevel;
       case 4:
-        return 'Cho phép gửi thông báo để không bỏ lỡ bài học.';
+        return OnboardingStrings.questionNotification;
       case 5:
-        return 'Cảm ơn bạn đã cung cấp thông tin!';
+        return OnboardingStrings.questionComplete;
       default:
-        return 'Bạn muốn học ngôn ngữ nào?';
+        return OnboardingStrings.questionLanguage;
     }
+  }
+
+  String _getSelectedLevelTitle() {
+    if (_selectedLevelId == null) {
+      return OnboardingStrings.debugNoSelection;
+    }
+
+    final level = OnboardingConstants.languageLevels
+        .firstWhere(
+          (lv) => lv.id == _selectedLevelId,
+          orElse: () => OnboardingConstants.languageLevels.first,
+        );
+    return level.title;
+  }
+
+  Future<void> _showDebugSelectionsDialog() async {
+    final language = _selectedLanguage ?? OnboardingStrings.debugNoSelection;
+    final topics = _selectedTopics.isNotEmpty
+        ? _selectedTopics.join(', ')
+        : OnboardingStrings.debugNoSelection;
+    final reasons = _selectedReasons.isNotEmpty
+        ? _selectedReasons.join(', ')
+        : OnboardingStrings.debugNoSelection;
+    final level = _getSelectedLevelTitle();
+
+    final content = '${OnboardingStrings.debugLanguageLabel} $language\n'
+        '${OnboardingStrings.debugTopicsLabel} $topics\n'
+        '${OnboardingStrings.debugReasonsLabel} $reasons\n'
+        '${OnboardingStrings.debugLevelLabel} $level';
+
+    debugPrint('[Onboarding] selections ->\n$content');
+  }
+
+  // ========== Build Methods ==========
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: _buildStepContent(),
+              ),
+            ),
+            _buildPrimaryButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return _OnboardingHeader(
+      progress: _progress,
+      onBack: _goBack,
+      title: _headerTitleForStep(),
+      question: _headerSubtitleForStep(),
+      stepText: '${_currentStepIndex + 1}/$_totalSteps',
+    );
+  }
+
+  Widget _buildPrimaryButton() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: SizedBox(
+        width: double.infinity,
+        height: 56,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
+            elevation: 0,
+          ),
+          onPressed: _canProceed() ? _handlePrimaryAction : null,
+          child: Text(
+            _getButtonLabel(),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepContent() {
+    switch (_currentStepIndex) {
+      case 0:
+        return _buildLanguageStep();
+      case 1:
+        return _buildTopicsStep();
+      case 2:
+        return _buildReasonsStep();
+      case 3:
+        return _buildLevelStep();
+      case 4:
+        return const _NotificationCTA(key: ValueKey('step-noti'));
+      case 5:
+      default:
+        return const _FinalThankYou(
+          key: ValueKey('step-final'),
+        );
+    }
+  }
+
+  Widget _buildLanguageStep() {
+    return Padding(
+      key: const ValueKey('step-language'),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: ListView.builder(
+        itemCount: OnboardingConstants.languages.length,
+        itemBuilder: (context, index) {
+          final lang = OnboardingConstants.languages[index];
+          return OptionTile(
+            emoji: lang.emoji,
+            label: lang.label,
+            selected: _selectedLanguage == lang.value,
+            onTap: () => setState(() => _selectedLanguage = lang.value),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTopicsStep() {
+    return Padding(
+      key: const ValueKey('step-topics'),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.25,
+        ),
+        itemCount: OnboardingConstants.topics.length,
+        itemBuilder: (context, index) {
+          final topic = OnboardingConstants.topics[index];
+          final selected = _selectedTopics.contains(topic);
+          return _TopicCard(
+            icon: Icons.category,
+            label: topic,
+            selected: selected,
+            onTap: () => _toggleTopic(topic),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildReasonsStep() {
+    return Padding(
+      key: const ValueKey('step-reasons'),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: ListView.builder(
+        itemCount: OnboardingConstants.reasons.length,
+        itemBuilder: (context, index) {
+          final reason = OnboardingConstants.reasons[index];
+          final selected = _selectedReasons.contains(reason);
+          return OptionTile(
+            leadingIcon: Icons.auto_awesome,
+            label: reason,
+            selected: selected,
+            multiSelect: true,
+            onTap: () => _toggleReason(reason),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildLevelStep() {
+    return Padding(
+      key: const ValueKey('step-level'),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: ListView.builder(
+        itemCount: OnboardingConstants.languageLevels.length,
+        itemBuilder: (context, index) {
+          final level = OnboardingConstants.languageLevels[index];
+          final selected = _selectedLevelId == level.id;
+          return OptionTile(
+            leadingIcon: Icons.timer,
+            label: level.title,
+            subtitle: level.subtitle,
+            badgeText: level.badge,
+            selected: selected,
+            onTap: () => setState(() => _selectedLevelId = level.id),
+          );
+        },
+      ),
+    );
   }
 }
 
-class _LanguageHeader extends StatefulWidget {
+// ========== Widgets ==========
+class _OnboardingHeader extends StatefulWidget {
   final double progress;
   final VoidCallback onBack;
   final String title;
   final String question;
   final String stepText;
 
-  const _LanguageHeader({
+  const _OnboardingHeader({
     required this.progress,
     required this.onBack,
     required this.title,
@@ -301,14 +367,14 @@ class _LanguageHeader extends StatefulWidget {
   });
 
   @override
-  State<_LanguageHeader> createState() => _LanguageHeaderState();
+  State<_OnboardingHeader> createState() => _OnboardingHeaderState();
 }
 
-class _LanguageHeaderState extends State<_LanguageHeader> {
+class _OnboardingHeaderState extends State<_OnboardingHeader> {
   double _previousProgress = 0;
 
   @override
-  void didUpdateWidget(covariant _LanguageHeader oldWidget) {
+  void didUpdateWidget(covariant _OnboardingHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.progress != widget.progress) {
       _previousProgress = oldWidget.progress;
@@ -334,195 +400,113 @@ class _LanguageHeaderState extends State<_LanguageHeader> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              InkWell(
-                onTap: widget.onBack,
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.06),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.chevron_left, color: Colors.black87),
-                ),
-              ),
-              const Spacer(),
-              const SizedBox(width: 40),
-            ],
-          ),
+          _buildBackButton(),
           const SizedBox(height: 8),
-          Center(
-            child: Text(
-              widget.title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
-            ),
-          ),
+          _buildTitle(),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    widget.stepText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween<double>(begin: _previousProgress, end: widget.progress),
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
-                    onEnd: () {
-                      _previousProgress = widget.progress;
-                    },
-                    builder: (context, value, _) => LinearProgressIndicator(
-                      value: value,
-                      minHeight: 8,
-                      backgroundColor: Colors.white,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          _buildProgressBar(),
           const SizedBox(height: 16),
-          Center(
-            child: Text(
-              widget.question,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-          ),
+          _buildQuestion(),
         ],
       ),
     );
   }
-}
 
-class _OptionTile extends StatelessWidget {
-  final String? emoji;
-  final IconData? leadingIcon;
-  final String label;
-  final String? subtitle;
-  final String? badgeText;
-  final bool selected;
-  final bool multiSelect;
-  final VoidCallback onTap;
-
-  const _OptionTile({
-    this.emoji,
-    this.leadingIcon,
-    required this.label,
-    this.subtitle,
-    this.badgeText,
-    required this.selected,
-    this.multiSelect = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-            border: Border.all(
-              color: selected ? AppColors.primaryColor : Colors.transparent,
-              width: 1.2,
+  Widget _buildBackButton() {
+    return Row(
+      children: [
+        InkWell(
+          onTap: widget.onBack,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ),
-          child: Row(
-            children: [
-              if (badgeText != null)
-                _Badge(text: badgeText!)
-              else
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: AppColors.fieldFill,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Center(
-                    child: emoji != null
-                        ? Text(emoji!, style: const TextStyle(fontSize: 18))
-                        : Icon(leadingIcon ?? Icons.circle, size: 18, color: Colors.black54),
-                  ),
-                ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: Theme.of(context).textTheme.bodyLarge),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
-                    ],
-                  ],
-                ),
-              ),
-              if (multiSelect)
-                Checkbox(
-                  value: selected,
-                  onChanged: (_) => onTap(),
-                  activeColor: AppColors.primaryColor,
-                  shape: const CircleBorder(),
-                )
-              else
-                Radio<bool>(
-                  value: true,
-                  groupValue: selected,
-                  onChanged: (_) => onTap(),
-                  activeColor: AppColors.primaryColor,
-                ),
-            ],
+            child: const Icon(Icons.chevron_left, color: Colors.black87),
           ),
         ),
+        const Spacer(),
+        const SizedBox(width: 40),
+      ],
+    );
+  }
+
+  Widget _buildTitle() {
+    return Center(
+      child: Text(
+        widget.title,
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+
+  Widget _buildProgressBar() {
+    return Row(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: const BoxDecoration(
+            color: AppColors.primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Text(
+              widget.stepText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: _previousProgress, end: widget.progress),
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+              onEnd: () {
+                _previousProgress = widget.progress;
+              },
+              builder: (context, value, _) => LinearProgressIndicator(
+                value: value,
+                minHeight: 8,
+                backgroundColor: Colors.white,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuestion() {
+    return Center(
+      child: Text(
+        widget.question,
+        textAlign: TextAlign.center,
+        style: Theme.of(context)
+            .textTheme
+            .titleLarge
+            ?.copyWith(fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -594,7 +578,10 @@ class _NotificationCTAState extends State<_NotificationCTA> {
   @override
   void initState() {
     super.initState();
-    // Request notification permission each time this step is shown
+    _requestNotificationPermission();
+  }
+
+  Future<void> _requestNotificationPermission() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final status = await Permission.notification.status;
       if (!status.isGranted) {
@@ -605,11 +592,11 @@ class _NotificationCTAState extends State<_NotificationCTA> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(Icons.notifications_active, size: 72, color: Color(0xFF3B82F6)),
           SizedBox(height: 16),
           Text(
@@ -629,25 +616,26 @@ class _NotificationCTAState extends State<_NotificationCTA> {
 }
 
 class _FinalThankYou extends StatelessWidget {
-  final VoidCallback onStart;
-  const _FinalThankYou({super.key, required this.onStart});
+  const _FinalThankYou({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+    return const Padding(
+      padding: EdgeInsets.fromLTRB(16, 24, 16, 0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(Icons.emoji_events, size: 80, color: Color(0xFF10B981)),
-          const SizedBox(height: 16),
-          const Text(
+          Icon(Icons.emoji_events, size: 80, color: Color(0xFF10B981)),
+          SizedBox(height: 16),
+          Text(
             'Cảm ơn bạn!',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 8),
-          const Text(
+          SizedBox(height: 8),
+          Text(
             'Bạn đã hoàn tất cài đặt ban đầu.',
             textAlign: TextAlign.center,
           ),
@@ -656,33 +644,3 @@ class _FinalThankYou extends StatelessWidget {
     );
   }
 }
-
-
-class _Badge extends StatelessWidget {
-  final String text;
-  const _Badge({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6FFF5),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFF10B981), width: 1.2),
-      ),
-      child: Center(
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Color(0xFF10B981),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-

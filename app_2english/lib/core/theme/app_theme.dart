@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
+import 'package:app_2english/core/theme/app_colors.dart';
 
 /// App Theme Configuration
 /// 
@@ -22,7 +22,7 @@ class AppTheme {
 
       // Mở rộng với custom colors (giống CSS variables)
       extensions: <ThemeExtension<dynamic>>[
-        AppColorScheme(
+        const AppColorScheme(
           fieldFill: AppColors.fieldFill,
           borderColor: AppColors.borderColor,
         ),

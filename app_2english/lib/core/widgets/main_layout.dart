@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'app_header.dart';
-import 'app_bottom_nav.dart';
+import 'package:app_2english/core/widgets/app_header.dart';
+import 'package:app_2english/core/widgets/app_bottom_nav.dart';
 
 /// Main layout wrapper that includes header and bottom navigation
 /// This provides a consistent layout across all modules that need it
 class MainLayout extends StatelessWidget {
-  final Widget body;
-  final int currentBottomNavIndex;
-  final Function(int)? onBottomNavTap;
 
   const MainLayout({
     super.key,
@@ -15,6 +12,9 @@ class MainLayout extends StatelessWidget {
     this.currentBottomNavIndex = 0,
     this.onBottomNavTap,
   });
+  final Widget body;
+  final int currentBottomNavIndex;
+  final Function(int)? onBottomNavTap;
 
   @override
   Widget build(BuildContext context) {

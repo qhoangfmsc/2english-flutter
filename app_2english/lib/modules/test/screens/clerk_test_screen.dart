@@ -4,6 +4,7 @@ import 'package:clerk_flutter/clerk_flutter.dart';
 class ClerkTestScreen extends StatelessWidget {
   const ClerkTestScreen({super.key});
 
+  // ========== Build Methods ==========
   @override
   Widget build(BuildContext context) {
     return Scaffold(

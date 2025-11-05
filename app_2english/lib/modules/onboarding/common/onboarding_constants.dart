@@ -51,23 +51,19 @@ class OnboardingConstants {
 
 /// Model cho tùy chọn ngôn ngữ
 class LanguageOption {
-  final String emoji;
-  final String label;
-  final String value;
 
   const LanguageOption({
     required this.emoji,
     required this.label,
     required this.value,
   });
+  final String emoji;
+  final String label;
+  final String value;
 }
 
 /// Model cho trình độ ngôn ngữ theo chuẩn CEFR
 class LanguageLevel {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String badge;
 
   const LanguageLevel({
     required this.id,
@@ -75,6 +71,10 @@ class LanguageLevel {
     required this.subtitle,
     required this.badge,
   });
+  final String id;
+  final String title;
+  final String subtitle;
+  final String badge;
 
   /// Chuyển đổi sang Map để tương thích với code hiện tại
   Map<String, String> toMap() {
